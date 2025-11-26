@@ -1,0 +1,9 @@
+﻿__pycache__/
+*.pyc
+*.pyo
+.scrapy/
+*.log
+.env
+*.tmp
+venv/
+env/
