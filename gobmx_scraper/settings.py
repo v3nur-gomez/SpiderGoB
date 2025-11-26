@@ -16,8 +16,9 @@ PLAYWRIGHT_BROWSER_TYPE = "chromium"
 
 PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 30000
 
-ITEM_PIPELINES = {
-    "scrapy.pipelines.files.FilesPipeline": 1,
-}
+# ITEM_PIPELINES desactivado - no se descargan archivos
+# ITEM_PIPELINES = {
+#     "scrapy.pipelines.files.FilesPipeline": 1,
+# }
 
 LOG_LEVEL = "INFO"
