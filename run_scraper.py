@@ -94,13 +94,14 @@ class IncrementalScraperRunner:
             print(f"🔍 Ejecutando scraping completo...\n")
             last_news = None
         
-        # Configurar settings
+        # Configurar settings con archivo temporal
+        temp_output = self.output_file + '.tmp'
         settings = get_project_settings()
         settings.set('FEEDS', {
-            self.output_file: {
+            temp_output: {
                 'format': 'json',
                 'encoding': 'utf-8',
-                'overwrite': False,
+                'overwrite': True,
                 'indent': 2,
             }
         })
@@ -122,16 +123,27 @@ class IncrementalScraperRunner:
         process.crawl(NoticiasGobSpider, **spider_kwargs)
         process.start()
         
-        # Cargar las noticias después del scraping
-        all_news = self.load_existing_news()
+        # Cargar las noticias nuevas del archivo temporal
+        new_news = []
+        if os.path.exists(temp_output):
+            try:
+                with open(temp_output, 'r', encoding='utf-8') as f:
+                    new_news = json.load(f)
+                os.remove(temp_output)  # Eliminar archivo temporal
+            except (json.JSONDecodeError, FileNotFoundError):
+                pass
         
-        # Calcular noticias nuevas
-        new_count = len(all_news) - len(existing_news)
+        # Combinar noticias: nuevas primero, luego existentes (sin duplicados)
+        all_news, new_count = self.merge_news(new_news, existing_news)
+        
+        # Guardar todas las noticias combinadas
+        with open(self.output_file, 'w', encoding='utf-8') as f:
+            json.dump(all_news, f, ensure_ascii=False, indent=2)
         
         print(f"\n" + "=" * 60)
         print(f"✅ Scraping completado!")
-        print(f"📊 Noticias nuevas encontradas: {new_count}")
         print(f"📊 Total de noticias: {len(all_news)}")
+        print(f"📊 Noticias nuevas encontradas: {new_count}")
         
         # Guardar información de la última ejecución
         if all_news:
